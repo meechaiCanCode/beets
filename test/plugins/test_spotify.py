@@ -318,6 +318,21 @@ class SpotifyPluginTest(PluginTestCase):
         assert len(track_info) == 51
         assert ids_per_request == [50, 1]
 
+    def test_fetch_info_warns_about_missing_track_ids(self):
+        items = []
+        for idx in range(2):
+            item = Item(title=f"Track {idx}", artist="Artist", length=10)
+            item.add(self.lib)
+            items.append(item)
+
+        with self.assertLogs("beets", level="WARNING") as captured_logs:
+            self.spotify._fetch_info(self.lib, items, write=False, force=True)
+
+        assert len(captured_logs.output) == 1
+        assert "2 track(s) did not have a Spotify ID and were skipped." in (
+            captured_logs.output[0]
+        )
+
     @responses.activate
     def test_fetch_info_uses_batch_endpoints(self):
         responses.add(

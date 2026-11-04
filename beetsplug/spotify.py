@@ -834,6 +834,7 @@ class SpotifyPlugin(
         """Obtain track information from Spotify."""
 
         self._log.debug("Total {} tracks", len(items))
+        track_id_failed_count = 0
 
         items_to_update: list[tuple[Item, str]] = []
 
@@ -850,9 +851,16 @@ class SpotifyPlugin(
                 spotify_track_id = item.spotify_track_id
             except AttributeError:
                 self._log.debug("No track_id present for: {}", item)
+                track_id_failed_count += 1
                 continue
 
             items_to_update.append((item, spotify_track_id))
+
+        if track_id_failed_count > 0:
+            self._log.warning(
+                "{} track(s) did not have a Spotify ID and were skipped.",
+                track_id_failed_count,
+            )
 
         if not items_to_update:
             return
